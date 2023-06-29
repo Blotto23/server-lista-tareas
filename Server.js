@@ -48,6 +48,88 @@ app.get('/protected', authenticateToken, (req, res) => {
     res.json({ message: 'Acceso concedido a la ruta protegida' });
 });
 
+// Array para almacenar las tareas
+let tasks = [];
+
+// Endpoint para crear una nueva tarea
+app.post('/tasks', (req, res) => {
+    const { title, description } = req.body;
+
+    if (!title || !description) {
+        return res.status(400).json({ error: 'Se requiere un título y una descripción' });
+    }
+
+    const newTask = {
+        id: tasks.length + 1,
+        title,
+        description,
+        completed: false
+    };
+
+    tasks.push(newTask);
+
+    res.status(201).json(newTask);
+});
+
+// Endpoint para actualizar una tarea
+app.put('/tasks/:id', (req, res) => {
+    const taskId = parseInt(req.params.id);
+    const { title, description, completed } = req.body;
+
+    const task = tasks.find(t => t.id === taskId);
+
+    if (!task) {
+        return res.status(404).json({ error: 'Tarea no encontrada' });
+    }
+
+    task.title = title || task.title;
+    task.description = description || task.description;
+    task.completed = completed || task.completed;
+
+    res.json(task);
+});
+
+// Endpoint para eliminar una tarea
+app.delete('/tasks/:id', (req, res) => {
+    const taskId = parseInt(req.params.id);
+
+    tasks = tasks.filter(t => t.id !== taskId);
+
+    res.json({ message: 'Tarea eliminada correctamente' });
+});
+
+// Endpoint para listar todas las tareas
+app.get('/tasks', (req, res) => {
+    res.json(tasks);
+});
+
+// Endpoint para listar tareas completas
+app.get('/tasks/completed', (req, res) => {
+    const completedTasks = tasks.filter(t => t.completed);
+
+    res.json(completedTasks);
+});
+
+// Endpoint para listar tareas incompletas
+app.get('/tasks/incomplete', (req, res) => {
+    const incompleteTasks = tasks.filter(t => !t.completed);
+
+    res.json(incompleteTasks);
+});
+
+// Endpoint para obtener una tarea específica
+app.get('/tasks/:id', (req, res) => {
+    const taskId = parseInt(req.params.id);
+
+    const task = tasks.find(t => t.id === taskId);
+
+    if (!task) {
+        return res.status(404).json({ error: 'Tarea no encontrada' });
+    }
+
+    res.json(task);
+});
+
 // Iniciar el servidor
 app.listen(3000, () => {
     console.log('Servidor iniciado en el puerto 3000');
